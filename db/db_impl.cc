@@ -1202,8 +1202,8 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
   while (!w.done && &w != writers_.front()) {
     w.cv.Wait();
   }
-  //comment by zhutao, only the first writer goes into the group commit procedure
-  //others ends here
+  //comment by zhutao: only the first writer goes into the group commit procedure
+  //others returns here
   if (w.done) {
     return w.status;
   }
@@ -1232,6 +1232,7 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
         }
       }
       if (status.ok()) {
+        // comment by zhutao: write into the memtable
         status = WriteBatchInternal::InsertInto(updates, mem_);
       }
       mutex_.Lock();
@@ -1253,14 +1254,14 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
     if (ready != &w) {
       ready->status = status;
       ready->done = true;
-      ready->cv.Signal();
+      ready->cv.Signal(); // comment by zhutao: wake up other writers in the same group
     }
     if (ready == last_writer) break;
   }
 
   // Notify new head of write queue
   if (!writers_.empty()) {
-    writers_.front()->cv.Signal();
+    writers_.front()->cv.Signal(); //comment by zhutao: wake up the header of the next group
   }
 
   return status;
