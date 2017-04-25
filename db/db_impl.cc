@@ -1202,6 +1202,8 @@ Status DBImpl::Write(const WriteOptions& options, WriteBatch* my_batch) {
   while (!w.done && &w != writers_.front()) {
     w.cv.Wait();
   }
+  //comment by zhutao, only the first writer goes into the group commit procedure
+  //others ends here
   if (w.done) {
     return w.status;
   }

@@ -741,6 +741,18 @@ class Benchmark {
     DoWrite(thread, false);
   }
 
+  /*
+   * call stack for DoWrite
+      leveldb::MemTable::Add(unsigned long, leveldb::ValueType, leveldb::Slice const&, leveldb::Slice const&) ()
+      leveldb::(anonymous namespace)::MemTableInserter::Put(leveldb::Slice const&, leveldb::Slice const&) ()
+      leveldb::WriteBatch::Iterate(leveldb::WriteBatch::Handler*) const ()
+      leveldb::WriteBatchInternal::InsertInto(leveldb::WriteBatch const*, leveldb::MemTable*) ()
+      leveldb::DBImpl::Write(leveldb::WriteOptions const&, leveldb::WriteBatch*) ()
+      leveldb::Benchmark::DoWrite(leveldb::(anonymous namespace)::ThreadState*, bool) ()
+      leveldb::Benchmark::ThreadBody(void*) ()
+      leveldb::(anonymous namespace)::StartThreadWrapper(void*) ()
+      start_thread () from /usr/lib64/libpthread.so.0
+   * */
   void DoWrite(ThreadState* thread, bool seq) {
     if (num_ != FLAGS_num) {
       char msg[100];
